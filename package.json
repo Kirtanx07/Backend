@@ -5,8 +5,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start":"node index.js ",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon src/index.js ",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/index.js "
   },
   "keywords": [
     "javaScript",
@@ -14,5 +15,8 @@
     "kirtan"
   ],
   "author": "Kirtan Kumar Kori",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
 }
