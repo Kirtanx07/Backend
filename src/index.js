@@ -1,13 +1,18 @@
-import mongoose, { Mongoose } from "mongoose";
-import { DB_NAME } from "./constants";
-import express from 'express'
-import connectDb from "./db";
+import dotenv from "dotenv"
+import express from "express"
+import connectDb from "./db/index.js"
 
-connectDb()
+dotenv.config()
 
 const app = express()
 
+connectDb()
 
+const PORT = process.env.PORT || 5000
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
 //async approch to be done
 /*
 function connectDb(){
