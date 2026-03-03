@@ -1,29 +1,24 @@
-import express from 'express'
-import cors from 'cors'
-import cookieParser from 'cookie-parser'
+import express from "express"
+import cors from "cors"
+import cookieParser from "cookie-parser"
+import userRouter from "./routes/user.routes.js"
+
+const app = express()
+app.get("/", (req, res) => {
+    res.send("Backend running 🚀");
+});
 
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
-    credentials:true,
-    
-
+    credentials: true
 }))
 
-//middleware
-
-app.use(express.json({
-    limit:"16kn"
-}))
-
-app.use(express.urlencoded({
-    extended:true,
-    limit:"16kb"
-}))
-
+app.use(express.json({ limit: "16kb" }))
+app.use(express.urlencoded({ extended: true }))
 app.use(express.static("public"))
-
 app.use(cookieParser())
 
-const app = express()
+// routes
+app.use("/api/v1/users", userRouter)
 
-export {app}
+export { app }
