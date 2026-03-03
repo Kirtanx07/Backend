@@ -37,19 +37,19 @@ const registerUser = asyncHandler(async (req, res) => {
     
 
     if (!avtarlocalPath) {
-        throw new ApiError(400,"Avtar File is Required!")
+        throw new ApiError(400,"Avtar1 File is Required!")
     }
     //upload them to cloudnary-reference url //avtar check
     const avtar = await uploadOnCloudinary(avtarlocalPath)
     const coverImage = await uploadOnCloudinary(coverImagePath)
 
     if (!avtar) {
-        throw new ApiError(400,"Avtar file is Required!")
+        throw new ApiError(400,"Avtar2 file is Required!")
     }
 
     
     //create user object -- create entry in db
-    const User = await User.create({
+    const user = await User.create({
         fullName,
         avtar:avtar.url,
         coverImage: coverImage?.url || "",
@@ -59,7 +59,7 @@ const registerUser = asyncHandler(async (req, res) => {
     })
 
     //remove password and refresh token field from response
-    const createdUser = await User.findById(User._id).select(
+    const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
 
