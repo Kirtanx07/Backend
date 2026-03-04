@@ -1,5 +1,5 @@
-import dotenv from "dotenv"
-dotenv.config();
+import dotenv from "dotenv";
+dotenv.config({ path: "./.env" }); // Force it to look at the root directory
 
 import connectDb from "./db/index.js"
 import { app } from "./app.js"

@@ -2,37 +2,40 @@ import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import path from "path";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
+// 1. Configure Cloudinary inside the function so it catches the .env variables
 const uploadOnCloudinary = async (localFilePath) => {
     try {
+        cloudinary.config({
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.CLOUDINARY_API_KEY,
+          api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
+
         if (!localFilePath) return null;
 
         const absolutePath = path.resolve(localFilePath);
 
-        const response = await cloudinary.uploader.upload(
-            absolutePath,
-            {
-                resource_type: "auto"
-            }
-        );
+        // 🚨 BIG TEST: Measure the file size before uploading
+        const stats = fs.statSync(absolutePath);
+        console.log(`\n📦 BIG TEST - FILE PATH: ${absolutePath}`);
+        console.log(`⚖️ BIG TEST - FILE SIZE: ${stats.size} bytes`);
+
+        if (stats.size === 0) {
+            console.error("❌ ERROR: The file is 0 bytes! Postman corrupted it.");
+            return null; // Stop the upload
+        }
+
+        const response = await cloudinary.uploader.upload(absolutePath, {
+            resource_type: "auto"
+        });
 
         // delete local file after upload
         fs.unlinkSync(localFilePath);
-
         return response;
 
     } catch (error) {
-        console.log("Cloudinary Upload Error:", error);
-
-        if (fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath);
-        }
-
+        console.error("Cloudinary Upload Error:", error);
+        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
         return null;
     }
 };

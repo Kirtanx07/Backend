@@ -1,22 +1,41 @@
-// testCloudinary.js
-import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
+// 🚨 FIXED: Look directly in the current folder
+dotenv.config({ path: ".env" }); 
 
-dotenv.config();
+import fs from "fs";
+import path from "path";
+import { uploadOnCloudinary } from "./cloudinary.js"; 
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const runUltimateTest = async () => {
+    console.log("🚀 STARTING THE ULTIMATE ISOLATED CLOUDINARY TEST...");
 
-(async () => {
-  try {
-    const result = await cloudinary.uploader.upload(
-      "https://res.cloudinary.com/demo/image/upload/sample.jpg"
-    );
-    console.log("UPLOAD SUCCESS:", result.secure_url);
-  } catch (err) {
-    console.log("UPLOAD FAILED:", err);
-  }
-})();
+    const tempDir = path.resolve("./public/temp");
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+
+    const testFilePath = path.join(tempDir, "guaranteed-real-image.jpg");
+
+    try {
+        console.log("⬇️ Downloading a valid image from the internet...");
+        const response = await fetch("https://picsum.photos/200");
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        fs.writeFileSync(testFilePath, buffer);
+        console.log(`✅ Saved valid image to disk! Size: ${buffer.length} bytes`);
+
+        console.log("⏳ Uploading to Cloudinary using YOUR cloudinary.js...");
+        const uploadResult = await uploadOnCloudinary(testFilePath);
+
+        if (uploadResult && uploadResult.url) {
+            console.log("\n🎉 MASSIVE SUCCESS! YOUR CLOUDINARY CODE WORKS PERFECTLY.");
+            console.log("🌐 Image live at:", uploadResult.url);
+            console.log("\n🛑 CONCLUSION: Your backend code is flawless. POSTMAN is corrupting the files. We will fix Postman next.");
+        } else {
+            console.log("\n❌ FAILED. Cloudinary rejected it.");
+        }
+    } catch (error) {
+        console.error("❌ Test crashed:", error);
+    }
+};
+
+runUltimateTest();

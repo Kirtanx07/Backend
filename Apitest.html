@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Registration</title></head>
+<body style="font-family: Arial; padding: 50px;">
+    <h2>Register User API Test</h2>
+    
+    <form id="registerForm">
+        <p>Full Name: <input type="text" name="fullName" value="Browser Test User"></p>
+        <p>Email: <input type="email" name="email" value="final_test_100@gmail.com"></p>
+        <p>Username: <input type="text" name="username" value="final_user_100"></p>
+        <p>Password: <input type="password" name="password" value="password123"></p>
+        
+        <p>Avatar Image: <input type="file" name="avtar" required></p>
+        <p>Cover Image: <input type="file" name="coverImage"></p>
+        
+        <button type="submit" style="padding: 10px 20px; background: green; color: white; border: none; cursor: pointer;">
+            Send Request to Server
+        </button>
+    </form>
+
+    <h3 style="margin-top: 30px;">Server Response:</h3>
+    <pre id="responseBox" style="background: #222; color: #0f0; padding: 20px; border-radius: 5px; overflow-x: auto;">
+Waiting for you to click send...
+    </pre>
+
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", async function(e) {
+            // 🛑 THIS STOPS THE PAGE FROM RELOADING!
+            e.preventDefault(); 
+
+            const responseBox = document.getElementById("responseBox");
+            responseBox.innerText = "⏳ Uploading to server and Cloudinary... Please wait.";
+
+            // Gather all the text and image data automatically
+            const formData = new FormData(this);
+
+            try {
+                // Send the data to your backend
+                const response = await fetch("http://localhost:8000/api/v1/users/register", {
+                    method: "POST",
+                    body: formData
+                });
+
+                // Get the JSON response
+                const data = await response.json();
+                
+                // Print the JSON directly onto the webpage!
+                responseBox.innerText = JSON.stringify(data, null, 4);
+            } catch (error) {
+                responseBox.innerText = "❌ Error: Could not connect to server.\n" + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
