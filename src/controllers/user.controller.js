@@ -26,7 +26,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // 4. Extract local file paths provided by Multer
     const avtarlocalPath = req.files?.avtar?.[0]?.path;
-    const coverImagePath = req.files?.coverImage?.[0]?.path;
+    //const coverImagePath = req.files?.coverImage?.[0]?.path;
+
+    let coverImagePath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImagePath = req.files.coverImage[0].path;
+    }
 
     if (!avtarlocalPath) {
         throw new ApiError(400, "Avatar file is Required!");
@@ -67,4 +72,97 @@ const registerUser = asyncHandler(async (req, res) => {
     );
 });
 
-export { registerUser };
+//Login User
+const loginUser = asyncHandler(async(req,res) => {
+    //req body
+     //username or email
+    //Find the user
+    //password check
+    
+
+    const {username,email,password} = req.body
+    console.log(email);
+    if (!username && !email || !password)  {
+        throw new ApiError(400 , "Email or username And Password is Required")
+    }
+
+    const user = await User.findOne({
+        $or:[{username},{email}]
+    })
+
+    if (!user) {
+        throw new ApiError(400,"User Doesn't exists")
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(password) 
+
+    if (!isPasswordValid){
+        throw new Api(401,"Password is incorrect")
+    }
+
+
+    //Give acces token and refresh token To user
+    //Send Cookies(secure)
+    //Response
+    const {accessToken,refreshToken} = await generateAccessTokenAndRefreshTokens(user._id)
+
+    //calling database
+    const loggedInUser = User.findById(user._id).select("-password -refreshToken")
+    
+    const options = {
+        httpOnlt:true,
+        secure:true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken:",accessToken,options)
+    .cookie("refrehtoken",refreshToken,options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: loggedInUser,accessToken,
+                refreshToken
+               
+            }, "User Logged In Succesfully"
+    
+    )
+)
+
+   
+});
+
+//logout
+const logOutUser = asyncHandler(async(req,res) =>{
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+        $set: {
+            refreshToken:undefined,
+
+        }
+    },
+        {
+            new:true
+        }
+    )
+    const options = {
+        httpOnlt:true,
+        secure:true
+    }
+
+    return res
+    .status(200)
+    .clearcookie("accessToken:",accessToken,options)
+    .clearcookie("refrehtoken",refreshToken,options)
+    .json(
+        new ApiResponse(
+            200,
+            {}, "User LoggedOut  Succesfully-6"
+    
+    ))
+
+});
+
+export { registerUser , loginUser , logOutUser };
