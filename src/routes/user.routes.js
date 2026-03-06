@@ -4,7 +4,6 @@ import { loginUser, registerUser ,logOutUser , refreshAccessToken, changeCurrent
      , getWatchHistory, getUserChannelProfile } from "../controllers/user.controller.js";
 import { upload } from "../../middlewares/multer.middleware.js";
 import { verifyJWT } from "../../middlewares/auth.middleware.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const router = Router();
 
