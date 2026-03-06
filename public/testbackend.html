@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Dev Dashboard v5</title>
+    <style>
+        :root { --bg: #0f172a; --panel: #1e293b; --text: #f8fafc; --accent: #3b82f6; --success: #10b981; --error: #ef4444; --warning: #f59e0b; --purple: #8b5cf6; --border: #334155; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; overflow: hidden; }
+        
+        /* Header & Control Center */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; height: 50px; }
+        .controls { display: flex; gap: 10px; align-items: center; }
+        .badge { background: #334155; padding: 6px 12px; border-radius: 6px; font-size: 12px; border: 1px solid var(--border); }
+        
+        /* Layout */
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100vh - 100px); }
+        .layout > div { min-width: 0; height: 100%; }
+        .left-column { overflow-y: auto; padding-right: 10px; padding-bottom: 50px; } 
+        
+        /* Cards & Forms */
+        .card { background: var(--panel); padding: 18px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        h3 { margin-top: 0; font-size: 16px; color: var(--accent); display: flex; justify-content: space-between; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 8px; box-sizing: border-box; background: #0f172a; color: white; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+        
+        button { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 5px; transition: 0.2s; font-size: 13px; }
+        button:hover { filter: brightness(1.2); }
+        .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-icon { width: auto; padding: 5px 10px; }
+
+        /* Configuration Panel (Hidden by default) */
+        #configPanel { display: none; background: #1e293b; border: 1px solid var(--warning); border-left: 4px solid var(--warning); }
+        
+        /* Terminal */
+        .terminal { position: sticky; top: 0; background: #000; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; height: calc(100vh - 120px); overflow: hidden; }
+        .terminal-header { background: #0f172a; padding: 10px 15px; font-family: monospace; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); font-size: 12px;}
+        pre { margin: 0; padding: 15px; flex: 1; overflow-y: auto; color: #a3be8c; font-family: 'JetBrains Mono', monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
+        
+        .hidden { display: none !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="controls">
+            <h2 style="margin:0; font-size: 20px;">🚀 DevDash v5</h2>
+            <button class="btn-ghost btn-icon" onclick="toggleConfig()" title="Settings">⚙️ Config</button>
+            <button class="btn-ghost btn-icon" id="toggleVisibilityBtn" onclick="toggleFeatures()">👁️ Hide Features</button>
+        </div>
+        <div class="badge" id="activeUserDisplay">🔴 Not Logged In</div>
+    </div>
+
+    <div class="layout">
+        <div class="left-column" id="mainFeatures">
+            
+            <div id="configPanel" class="card">
+                <h3 style="color: var(--warning);">⚙️ Settings (Beta)</h3>
+                <label style="font-size: 12px;"><input type="checkbox" id="autoFillToggle" checked> Enable Password Auto-fill</label><br>
+                <label style="font-size: 12px;"><input type="checkbox" disabled> Strict Mode (Mock)</label><br>
+                <button class="btn-ghost" style="margin-top:10px; font-size: 11px;">Save Configuration</button>
+            </div>
+
+            <div class="card feature-item">
+                <h3>1. Register User <button class="btn-ghost btn-icon" onclick="generateFakeData()">🎲</button></h3>
+                <form onsubmit="handleRegister(event)">
+                    <input type="text" id="regFullName" placeholder="Full Name" required>
+                    <input type="text" id="regUsername" placeholder="Username" required>
+                    <input type="email" id="regEmail" placeholder="Email" required>
+                    <input type="password" id="regPassword" placeholder="Password" required>
+                    <button type="submit" style="background: var(--success);">Register</button>
+                </form>
+            </div>
+
+            <div class="card feature-item">
+                <h3>2. Authentication</h3>
+                <select id="savedUserSelect" onchange="autoFillLogin()"></select>
+                <form onsubmit="handleLogin(event)">
+                    <input type="text" id="loginUsername" placeholder="Username / Email" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+
+            <div class="card feature-item">
+                <h3>3. Security Updates</h3>
+                <input type="password" id="oldPwd" placeholder="Old Password (Auto-fills on Login)">
+                <input type="password" id="newPwd" placeholder="New Password">
+                <button onclick="handleChangePassword()" style="background: var(--warning); color: #000;">Change Password</button>
+            </div>
+
+            <div class="card feature-item">
+                <h3>4. Profile & Assets</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button onclick="handleUpdateAvatar()" class="btn-purple" style="font-size: 11px;">Update Avatar</button>
+                    <button onclick="handleUpdateCover()" class="btn-purple" style="font-size: 11px;">Update Cover</button>
+                </div>
+                <button onclick="makeRequest('/api/v1/users/current-user', 'GET')">Get Current User</button>
+            </div>
+
+        </div>
+
+        <div class="terminal">
+            <div class="terminal-header">
+                <span>CONSOLE</span>
+                <span id="statusIndicator">READY</span>
+            </div>
+            <pre id="output">Welcome to v5. Use⚙️ Config to manage environment.</pre>
+        </div>
+    </div>
+
+    <script>
+        // --- UI TOGGLES ---
+        function toggleConfig() {
+            const p = document.getElementById('configPanel');
+            p.style.display = p.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleFeatures() {
+            const items = document.querySelectorAll('.feature-item');
+            const btn = document.getElementById('toggleVisibilityBtn');
+            items.forEach(el => el.classList.toggle('hidden'));
+            btn.innerText = btn.innerText.includes('Hide') ? '👁️ Show Features' : '👁️ Hide Features';
+        }
+
+        // --- CORE LOGIC ---
+        let currentLoggedUser = null;
+
+        function printScreen(data, isError = false) {
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+            document.getElementById('statusIndicator').innerText = isError ? "ERROR" : "SUCCESS";
+            document.getElementById('statusIndicator').style.color = isError ? "var(--error)" : "var(--success)";
+        }
+
+        async function makeRequest(endpoint, method, bodyData = null) {
+            try {
+                const options = { method, credentials: 'include' };
+                if (bodyData instanceof FormData) options.body = bodyData;
+                else if (bodyData) {
+                    options.headers = { 'Content-Type': 'application/json' };
+                    options.body = JSON.stringify(bodyData);
+                }
+                const res = await fetch(endpoint, options);
+                const data = await res.json();
+                printScreen(data, !res.ok);
+                return { ok: res.ok, data };
+            } catch (err) {
+                printScreen({ error: err.message }, true);
+                return { ok: false };
+            }
+        }
+
+        // --- DATA MGMT ---
+        function loadSavedUsers() {
+            const users = JSON.parse(localStorage.getItem('saved_api_users') || '[]');
+            const select = document.getElementById('savedUserSelect');
+            select.innerHTML = '<option value="">-- Saved Users --</option>';
+            users.forEach((u, i) => select.innerHTML += `<option value="${i}">${u.username}</option>`);
+        }
+
+        function autoFillLogin() {
+            const i = document.getElementById('savedUserSelect').value;
+            if (i === "") return;
+            const users = JSON.parse(localStorage.getItem('saved_api_users'));
+            document.getElementById('loginUsername').value = users[i].username;
+            document.getElementById('loginPassword').value = users[i].password;
+        }
+
+        function generateFakeData() {
+            const n = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('regFullName').value = `Dev User ${n}`;
+            document.getElementById('regUsername').value = `dev_${n}`;
+            document.getElementById('regEmail').value = `dev${n}@test.com`;
+            document.getElementById('regPassword').value = `DevPass123!`;
+        }
+
+        // --- HANDLERS ---
+        async function handleRegister(e) {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('fullName', document.getElementById('regFullName').value);
+            fd.append('username', document.getElementById('regUsername').value);
+            fd.append('email', document.getElementById('regEmail').value);
+            fd.append('password', document.getElementById('regPassword').value);
+            
+            // Dummy Images
+            const canvas = document.createElement('canvas'); canvas.width = 10; canvas.height = 10;
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg'));
+            fd.append('avtar', new File([blob], "av.jpg"));
+            fd.append('coverImage', new File([blob], "cv.jpg"));
+
+            const res = await makeRequest('/api/v1/users/register', 'POST', fd);
+            if (res.ok) {
+                const users = JSON.parse(localStorage.getItem('saved_api_users') || '[]');
+                users.push({ username: document.getElementById('regUsername').value, password: document.getElementById('regPassword').value });
+                localStorage.setItem('saved_api_users', JSON.stringify(users));
+                loadSavedUsers();
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const password = document.getElementById('loginPassword').value;
+            const res = await makeRequest('/api/v1/users/login', 'POST', { 
+                username: document.getElementById('loginUsername').value, 
+                password: password 
+            });
+            if (res.ok) {
+                currentLoggedUser = { password }; // Store current password for auto-fill
+                document.getElementById('activeUserDisplay').innerHTML = `🟢 Logged In`;
+                
+                // FEATURE: Auto-fill Change Password if Setting is ON
+                if(document.getElementById('autoFillToggle').checked) {
+                    document.getElementById('oldPwd').value = password;
+                }
+            }
+        }
+
+        async function handleChangePassword() {
+            await makeRequest('/api/v1/users/change-Password', 'POST', { 
+                oldPassword: document.getElementById('oldPwd').value, 
+                newPassword: document.getElementById('newPwd').value 
+            });
+        }
+
+        // Asset update helpers (simplified for demo)
+        async function handleUpdateAvatar() {
+            const fd = new FormData();
+            const canvas = document.createElement('canvas'); canvas.width = 10; canvas.height = 10;
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg'));
+            fd.append('avtar', new File([blob], "new_av.jpg"));
+            await makeRequest('/api/v1/users/avtar', 'PATCH', fd);
+        }
+
+        async function handleUpdateCover() {
+            const fd = new FormData();
+            const canvas = document.createElement('canvas'); canvas.width = 10; canvas.height = 10;
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg'));
+            fd.append('coverimage', new File([blob], "new_cv.jpg"));
+            await makeRequest('/api/v1/users/cover-image', 'PATCH', fd);
+        }
+
+        window.onload = loadSavedUsers;
+    </script>
+</body>
+</html>

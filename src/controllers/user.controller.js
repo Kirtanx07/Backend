@@ -4,7 +4,6 @@ import { User } from "../../models/user.model.js"; // Corrected relative path
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
-import { channel } from "diagnostics_channel";
 import mongoose from "mongoose";
 
 //generateAccessAndRefereshTokens
@@ -163,12 +162,9 @@ const logOutUser = asyncHandler(async(req,res) =>{
         {
         $set: {
             refreshToken:undefined,
+        },
+    },{returnDocument: 'after'}
 
-        }
-    },
-        {
-            new:true
-        }
     )
     const options = {
         httpOnly:true,
@@ -236,12 +232,12 @@ const refreshAccessToken = asyncHandler (async(req,res) => {
 
 });
 
-const changeCurrentPassword = asyncHandler(async(req,rees) => {
-    const {oldPassworrd,newPassword} = req.body
+const changeCurrentPassword = asyncHandler(async(req,res) => {
+    const {oldPassword,newPassword} = req.body
     const user = await User.findById(req.user?._id)
     const isPasswordCorrect = user.isPasswordCorrect(oldPassword)
 
-    if(isPasswordCorrect){
+    if(!isPasswordCorrect){
         throw new ApiError(400, "Invalid Old Password-9");
     }
 
@@ -284,7 +280,7 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
             }
         },
         {
-            new:true
+            returnDocument: 'after'
         }
     ).select("-password")
 
@@ -318,7 +314,7 @@ const updateUserAvtar = asyncHandler(async(req,res) => {
             $set: { avtar: avtar.url }
         },
         {
-            new:true
+            returnDocument: 'after'
         }
     ).select("-password")
 
@@ -352,7 +348,7 @@ const updateUserCoverImage = asyncHandler(async(req,res) => {
             }   
         },
         {
-            new:true    
+            returnDocument: 'after'    
         }
     ).select("-password")       
 
